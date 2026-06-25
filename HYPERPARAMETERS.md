@@ -164,3 +164,39 @@ Controls how sharply weights decay with distance.
 - Authoritative source: [`GRAPH_VARIABLES.md`](https://github.com/tuned-org-uk/pyarrowspace/blob/main/GRAPH_VARIABLES.md) in pyarrowspace
 - Rust struct: [`GraphParams`](https://github.com/tuned-org-uk/arrowspace-rs/blob/main/src/graph.rs) in arrowspace-rs
 - JOSS paper: https://doi.org/10.21105/joss.09002
+
+## Automated tuning with `arrowspace_tuner`
+
+Manual parameter search is tedious and corpus-dependent. The companion package [`arrowspace_tuner`](https://github.com/Genefold/arrowspace_tuner) uses Optuna to discover optimal `eps`, `k`, and `tau` automatically using a label-free spectral MRR proxy.
+
+```bash
+pip install arrowspace-tuner
+```
+
+```python
+import arrowspace_tuner
+import numpy as np
+
+embeddings = np.load("corpus.npy")  # shape (N, D) float64
+
+# One-liner: discovers eps, k, tau in ~15 min on 50k corpus
+aspace, gl = arrowspace_tuner.optuna(embeddings)
+
+# Inspect the best params found
+print(aspace, gl)
+
+# Or use the power-user API with full control
+from arrowspace_tuner import EpsTuner
+
+tuner = EpsTuner(
+    n_trials=15,
+    eps_low=0.8,
+    eps_high=10,
+    k_low=15,
+    k_high=40,
+)
+aspace, gl = tuner.fit(embeddings)
+print(tuner.best_params)  # {"eps": 1.615, "k": 38, "tau": 0.114}
+```
+
+The objective blends retrieval coherence (spectral MRR proxy), graph connectivity (Fiedler value), and spectral richness — no ground-truth labels required.
