@@ -1,0 +1,16 @@
+[project]
+name = "arrowspace-skills"
+version = "0.1.0"
+description = "Portable skill definitions and utilities for ArrowSpace spectral vector search"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+dependencies = [
+    "arrowspace>=0.24",
+    "numpy",
+]
+
+[project.urls]
+Homepage = "https://github.com/Genefold/arrowspace-skills"
+Source = "https://github.com/Genefold/arrowspace-skills"
+JOSS = "https://doi.org/10.21105/joss.09002"
