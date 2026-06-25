@@ -9,7 +9,7 @@ metadata:
 
 # ArrowSpace
 
-ArrowSpace is a vector database and search library that augments nearest-neighbour search with spectral graph features. It computes a Laplacian over the item graph and uses the Rayleigh quotient to produce a `λτ` (lambda-tau) score per item, enabling search that respects both semantic similarity and structural role.
+ArrowSpace is a vector database and search library that augments nearest-neighbour search with spectral graph features. It computes a Laplacian over the item graph and uses the Rayleigh quotient to produce a $$λτ$$ (lambda-tau) score per item, enabling search that respects both semantic similarity and structural role.
 
 ## When to Activate
 
@@ -39,7 +39,24 @@ params = {"eps": 1.0, "k": 6, "topk": 3, "p": 2.0, "sigma": 1.0}
 aspace, gl = ArrowSpaceBuilder().build(params, items)
 ```
 
-`gl` is the graph laplacian containing eigenvalues, eigenvectors, and signal graph.
+`gl` is the graph Laplacian containing the Laplacian matrix (accessed via `gl.to_dense()` or `gl.to_csr()`).
+
+### Per-item $$λτ$$ scores
+
+After building, the ArrowSpace instance exposes spectral scores for every item:
+
+```python
+# Indexed by item insertion order: result[i] is score for i-th item
+scores = aspace.lambdas()
+
+# Sorted ascending: list of (score, item_index) tuples
+ranked = aspace.lambdas_sorted()
+```
+
+- `lambdas()` — scores array aligned by item index (item 0, item 1, ...)
+- `lambdas_sorted()` — `(score, index)` pairs sorted from least to most coherent
+
+These are per-item spectral signatures, distinct from graph eigenvalues.
 
 ### Search
 
@@ -59,9 +76,9 @@ hits = aspace.search(query, gl, tau=1.0)
 | `p` | 2.0 | Distance norm (2 = Euclidean) |
 | `sigma` | 1.0 | RBF kernel width |
 
-### Tau (λτ) score
+### Tau ($$λτ$$) score
 
-`tau` controls the spectral gate. Higher values include more items; lower values restrict to the most spectrally coherent candidates. Start at `tau=1.0` and tune based on recall-precision trade-off.
+`tau` controls the spectral gate — the threshold for including items based on their $$λτ$$ score. Higher values include more items; lower values restrict to the most spectrally coherent candidates. Start at `tau=1.0` and tune based on recall-precision trade-off.
 
 ## Resources
 

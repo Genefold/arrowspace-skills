@@ -63,9 +63,28 @@ def spectral_summary(gl) -> str:
 
 def item_lambdas(aspace) -> np.ndarray:
     """
-    Return per-item λτ spectral scores from an ArrowSpace instance.
+    Return per-item ``λτ`` scores from an ArrowSpace instance.
+
+    The array is indexed by item insertion order:
+    ``result[i]`` is the λτ score for the i-th item passed to
+    ``ArrowSpaceBuilder.build()``.
 
     These scores blend Rayleigh quotient and Laplacian dispersion
     for each item, reflecting its structural role in the graph.
+    Higher score = more spectrally coherent.
     """
     return np.asarray(aspace.lambdas())
+
+
+def sorted_lambdas(aspace) -> list[tuple[float, int]]:
+    """
+    Return ``(lambda, position)`` pairs sorted ascending by ``λτ`` score.
+
+    Each element is ``(score, item_index)`` where ``item_index`` is the
+    position of the item in the original array passed to the builder.
+    The first element is the lowest-scoring item (least spectrally
+    coherent); the last is the highest-scoring (most coherent).
+
+    Useful for identifying spectral outliers and coherence ranking.
+    """
+    return list(aspace.lambdas_sorted())

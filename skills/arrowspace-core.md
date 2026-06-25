@@ -8,7 +8,7 @@ You have a set of items represented as dense vectors and want to build a spectra
 
 ## How it works
 
-ArrowSpace constructs a k-NN graph from the item vectors, computes the graph Laplacian, and extracts its eigenstructure. The resulting signal graph encodes both proximity and structural role.
+ArrowSpace constructs a k-NN graph from the item vectors, computes the graph Laplacian, and extracts its eigenstructure. The resulting signal graph encodes both proximity and structural role. After building, each item has a $$λτ$$ (lambda-tau) score reflecting its spectral coherence.
 
 ## Steps
 
@@ -16,6 +16,23 @@ ArrowSpace constructs a k-NN graph from the item vectors, computes the graph Lap
 2. Choose graph parameters: `eps` (radius), `k` (neighbours), `sigma` (RBF width).
 3. Call `ArrowSpaceBuilder().build(params, items)`.
 4. Store the returned `(aspace, gl)` pair.
+
+## The $$λτ$$ scores
+
+After building, the ArrowSpace instance exposes per-item spectral scores:
+
+```python
+# λτ scores by item index: result[i] = score for the i-th item
+scores = aspace.lambdas()
+
+# Sorted ascending: list of (score, item_index) tuples
+ranked = aspace.lambdas_sorted()
+```
+
+- **`lambdas()`** returns an array indexed by insertion order (item 0, item 1, ...). Higher score = more spectrally coherent.
+- **`lambdas_sorted()`** returns `(score, index)` pairs sorted by score, from least to most coherent.
+
+The $$λτ$$ score is distinct from graph eigenvalues — it is a per-item blend of Rayleigh quotient and Laplacian dispersion that characterises each item's structural role.
 
 ## Key parameters
 

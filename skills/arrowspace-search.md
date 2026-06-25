@@ -1,6 +1,6 @@
 # ArrowSpace Vector Search
 
-Querying an ArrowSpace index with λτ scoring.
+Querying an ArrowSpace index with $$λτ$$ scoring.
 
 ## When to use
 
@@ -8,7 +8,7 @@ You have a built ArrowSpace index and need to retrieve items similar to a query 
 
 ## How it works
 
-Each item is scored by a combination of its distance to the query and its spectral role in the graph. The `tau` parameter controls the spectral gate: higher tau values include more items; lower tau values restrict to spectrally coherent candidates.
+Each item is scored by a combination of its distance to the query and its spectral role in the graph (expressed by that item's $$λτ$$ score). The `tau` parameter controls the spectral gate: higher tau values include more items; lower tau values restrict to spectrally coherent candidates.
 
 ## Steps
 
@@ -28,6 +28,8 @@ Each item is scored by a combination of its distance to the query and its spectr
 Scores are in [0, 1]. Higher means more spectrally coherent with the query. The score blends:
 - Proximity in embedding space (semantic similarity)
 - Structural alignment in the graph Laplacian (spectral role)
+
+The per-item $$λτ$$ scores (from `aspace.lambdas()` and `aspace.lambdas_sorted()`) can help you understand *why* certain items rank high or low — items with intrinsically high $$λτ$$ will tend to rank higher across queries.
 
 ## References
 
