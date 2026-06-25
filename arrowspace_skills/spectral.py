@@ -5,27 +5,33 @@ import numpy as np
 
 def explain_spectral_properties(gl) -> dict:
     """
-    Extract interpretable spectral diagnostics from a graph laplacian.
+    Extract interpretable spectral diagnostics from a GraphLaplacian.
+
+    Computes the eigendecomposition of the dense Laplacian matrix.
+    For large graphs (N > 5000), consider using sparse eigensolvers.
 
     Parameters
     ----------
-    gl : graph laplacian object from ArrowSpaceBuilder.build()
+    gl : GraphLaplacian from ArrowSpaceBuilder.build()
 
     Returns
     -------
-    dict with keys: n_nodes, eigvals_range, fiedler_value, spectral_gap,
-    condition_number_estimate.
+    dict with keys: n_nodes, eigval_min, eigval_max, fiedler_value,
+    spectral_gap, condition_number_estimate.
     """
-    eigvals = np.sort(getattr(gl, "eigvals", getattr(gl, "lambdas", None)))
-    if eigvals is None:
-        return {"error": "no eigenvalues found in graph laplacian object"}
+    n = gl.nnodes
+    dense = gl.to_dense()
+    if isinstance(dense, np.ndarray) and dense.ndim == 2:
+        eigvals = np.sort(np.linalg.eigvalsh(dense))
+    else:
+        return {"error": "expected dense matrix from gl.to_dense()"}
 
     fiedler = float(eigvals[1]) if len(eigvals) > 1 else float(eigvals[0])
     spectral_gap = float(eigvals[1] - eigvals[0]) if len(eigvals) > 1 else 0.0
     cond_est = float(eigvals[-1] / eigvals[0]) if eigvals[0] > 1e-12 else float("inf")
 
     return {
-        "n_nodes": len(eigvals),
+        "n_nodes": n,
         "eigval_min": float(eigvals[0]),
         "eigval_max": float(eigvals[-1]),
         "fiedler_value": fiedler,
@@ -36,7 +42,7 @@ def explain_spectral_properties(gl) -> dict:
 
 def spectral_summary(gl) -> str:
     """
-    Human-readable summary of the spectral properties of a graph laplacian.
+    Human-readable summary of the spectral properties.
     """
     props = explain_spectral_properties(gl)
     if "error" in props:
@@ -53,3 +59,13 @@ def spectral_summary(gl) -> str:
     if props["condition_number_estimate"] > 1000:
         lines.append("High condition number — consider increasing eps or k.")
     return "\n".join(lines)
+
+
+def item_lambdas(aspace) -> np.ndarray:
+    """
+    Return per-item λτ spectral scores from an ArrowSpace instance.
+
+    These scores blend Rayleigh quotient and Laplacian dispersion
+    for each item, reflecting its structural role in the graph.
+    """
+    return np.asarray(aspace.lambdas())

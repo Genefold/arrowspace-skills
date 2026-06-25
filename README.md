@@ -71,7 +71,7 @@ pip install arrowspace-skills
 ```
 
 ```python
-from arrowspace_skills import suggest_params, explain_tau
+from arrowspace_skills import suggest_params, build_index, tune_tau, item_lambdas
 ```
 
 See `arrowspace_skills/` for reusable helper functions.
