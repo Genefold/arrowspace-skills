@@ -66,11 +66,12 @@ def search_with_recall(
     gl : graph laplacian
     query : np.ndarray, shape (D,)
     tau : float, spectral gate
-    k : int, number of results
+    k : int, maximum number of results to return from index-level hits
 
     Returns
     -------
-    list of (index, score) tuples.
+    list of (index, score) tuples. ArrowSpace fixes candidate count at
+    build time via ``topk``; this helper only truncates the returned hits.
     """
     all_hits = aspace.search(query, gl, tau=tau)
     return all_hits[:k]

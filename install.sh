@@ -9,11 +9,11 @@ echo "=== ArrowSpace Skills Setup ==="
 # 1. Ensure the core library is installed
 if ! python -c "import arrowspace" 2>/dev/null; then
     echo "Installing arrowspace..."
-    pip install arrowspace
+    python -m pip install arrowspace
 fi
 
 # 2. Install this package
-pip install -e .
+python -m pip install -e .
 
 # 3. Register as opencode skill if requested
 if [ "${1:-}" = "--opencode" ]; then

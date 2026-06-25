@@ -24,6 +24,10 @@ build-backend = "setuptools.build_meta"
 include = ["arrowspace_skills*"]
 exclude = ["skills*"]
 
+[tool.setuptools.data-files]
+"share/arrowspace-skills" = ["SKILL.md", "HYPERPARAMETERS.md"]
+"share/arrowspace-skills/skills" = ["skills/*.md"]
+
 [project.urls]
 Homepage = "https://github.com/Genefold/arrowspace-skills"
 Source = "https://github.com/Genefold/arrowspace-skills"
