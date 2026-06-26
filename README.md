@@ -71,7 +71,16 @@ pip install arrowspace-skills
 ```
 
 ```python
-from arrowspace_skills import suggest_params, build_index, tune_tau, item_lambdas
+from arrowspace_skills import (
+    suggest_params,              # heuristic graph parameters
+    build_index,                 # one-shot index builder
+    tune_tau,                    # grid search over spectral gate
+    search_with_recall,          # query with result cap
+    item_lambdas,                # per-item lambda-tau scores
+    sorted_lambdas,              # lambda-tau-ranked item list
+    explain_spectral_properties, # eigendecomposition diagnostics
+    spectral_summary,            # human-readable spectral report
+)
 ```
 
 See `arrowspace_skills/` for reusable helper functions.
