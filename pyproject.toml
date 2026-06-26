@@ -1,6 +1,6 @@
 [project]
 name = "arrowspace-skills"
-version = "0.2.0"
+version = "0.3.0"
 description = "Portable skill definitions and utilities for ArrowSpace spectral vector search"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -22,11 +22,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["arrowspace_skills*"]
-exclude = ["skills*"]
 
-[tool.setuptools.data-files]
-"share/arrowspace-skills" = ["SKILL.md", "HYPERPARAMETERS.md"]
-"share/arrowspace-skills/skills" = ["skills/*.md"]
+[tool.setuptools.package-data]
+arrowspace_skills = ["skills/*.md", "SKILL.md", "HYPERPARAMETERS.md"]
 
 [project.urls]
 Homepage = "https://github.com/Genefold/arrowspace-skills"

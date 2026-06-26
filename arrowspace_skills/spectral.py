@@ -20,6 +20,11 @@ def explain_spectral_properties(gl) -> dict:
     spectral_gap, condition_number_estimate.
     """
     n = gl.nnodes
+    if n > 2000:
+        raise ValueError(
+            f"explain_spectral_properties called with n={n} (limit=2000). "
+            "For graphs this large, use a sparse eigensolver directly."
+        )
     dense = gl.to_dense()
     if isinstance(dense, np.ndarray) and dense.ndim == 2:
         eigvals = np.sort(np.linalg.eigvalsh(dense))
@@ -56,6 +61,7 @@ def spectral_summary(gl) -> str:
     ]
     if props["fiedler_value"] < 0.1:
         lines.append("Low Fiedler value — graph may be poorly connected.")
+    lines.append(f"Condition number estimate: {props['condition_number_estimate']:.1f}")
     if props["condition_number_estimate"] > 1000:
         lines.append("High condition number — consider increasing eps or k.")
     return "\n".join(lines)

@@ -1,2 +1,1 @@
-include SKILL.md HYPERPARAMETERS.md
-recursive-include skills *.md
+recursive-include arrowspace_skills *.md

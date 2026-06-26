@@ -54,7 +54,15 @@ def build_index(
     Returns
     -------
     (aspace, gl) tuple from ArrowSpaceBuilder.build().
+
+    Raises
+    ------
+    ValueError
+        If items is not a 2-D float64 array.
     """
+    if items.ndim != 2:
+        raise ValueError(f"Expected 2D array, got shape {items.shape}")
+    items = np.ascontiguousarray(items, dtype=np.float64)
     if params is None:
         params = suggest_params(items.shape[0], items.shape[1])
     return ArrowSpaceBuilder().build(params, items)

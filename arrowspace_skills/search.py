@@ -30,6 +30,9 @@ def tune_tau(
     if tau_range is None:
         tau_range = [0.1, 0.5, 1.0, 2.0, 5.0]
 
+    if not any(len(r) > 0 for r in ground_truth):
+        raise ValueError("No non-empty ground truth entries provided")
+
     best_tau = tau_range[0]
     best_recall = 0.0
 
@@ -55,10 +58,10 @@ def search_with_recall(
     gl,
     query: np.ndarray,
     tau: float = 1.0,
-    k: int = 10,
+    max_results: int = 10,
 ) -> list[tuple[int, float]]:
     """
-    Search and return top-k hits with their λτ scores.
+    Search and return top hits with their λτ scores.
 
     Parameters
     ----------
@@ -66,12 +69,13 @@ def search_with_recall(
     gl : graph laplacian
     query : np.ndarray, shape (D,)
     tau : float, spectral gate
-    k : int, maximum number of results to return from index-level hits
+    max_results : int, maximum number of results to return
+        The actual count is bounded by the index's build-time ``topk``;
+        this helper only truncates the returned hits.
 
     Returns
     -------
-    list of (index, score) tuples. ArrowSpace fixes candidate count at
-    build time via ``topk``; this helper only truncates the returned hits.
+    list of (index, score) tuples.
     """
     all_hits = aspace.search(query, gl, tau=tau)
-    return all_hits[:k]
+    return all_hits[:max_results]
