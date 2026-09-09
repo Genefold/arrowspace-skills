@@ -24,23 +24,24 @@ def _make_small_dataset() -> np.ndarray:
 class TestSuggestParams(unittest.TestCase):
     def test_large_dataset(self) -> None:
         p = suggest_params(10000, 768)
-        self.assertEqual(p["eps"], 0.2)
-        self.assertIn("k", p)
-        self.assertIn("topk", p)
+        self.assertEqual(p["eps"], 1.0)
+        self.assertGreaterEqual(p["k"], 12)
+        self.assertLessEqual(p["k"], 25)
+        self.assertEqual(p["topk"], 6)
         self.assertEqual(p["p"], 2.0)
 
     def test_small_dataset(self) -> None:
         p = suggest_params(50, 128)
-        self.assertEqual(p["eps"], 0.1)
-        self.assertGreaterEqual(p["k"], 3)
+        self.assertEqual(p["eps"], 0.5)
+        self.assertGreaterEqual(p["k"], 12)
 
     def test_low_dims(self) -> None:
         p = suggest_params(500, 64)
-        self.assertEqual(p["eps"], 0.1)
+        self.assertEqual(p["eps"], 0.5)
 
     def test_high_dims(self) -> None:
         p = suggest_params(500, 1024)
-        self.assertEqual(p["eps"], 0.5)
+        self.assertEqual(p["eps"], 2.0)
 
 
 class TestBuildIndex(unittest.TestCase):
@@ -62,7 +63,8 @@ class TestBuildIndex(unittest.TestCase):
 
     def test_converts_dtype(self) -> None:
         items = np.random.default_rng(3407).normal(size=(10, 3)).astype(np.float32)
-        aspace, gl = build_index(items)
+        # eps must suit this tiny random dataset (cosine distances ~sqrt(2))
+        aspace, gl = build_index(items, {"eps": 2.0, "k": 4, "topk": 2, "p": 2.0, "sigma": None})
         self.assertEqual(aspace.nitems, 10)
 
 

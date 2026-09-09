@@ -13,6 +13,10 @@ def tune_tau(
     """
     Simple tau grid search over recall@k.
 
+    ``tau`` is the alpha-beta blend weight between cosine similarity and
+    the spectral lambda-tau score: ``tau = 1.0`` is pure cosine ranking
+    and lower values blend in spectral coherence.
+
     Parameters
     ----------
     aspace : ArrowSpace instance
@@ -21,14 +25,15 @@ def tune_tau(
     ground_truth : list of list of int
         Relevant item indices per query.
     tau_range : list of float, optional
-        Defaults to [0.1, 0.5, 1.0, 2.0, 5.0].
+        Defaults to [0.0, 0.25, 0.5, 0.75, 1.0]. Values outside [0, 1]
+        extrapolate the blend and are not recommended.
 
     Returns
     -------
     float : tau value with highest mean recall@k.
     """
     if tau_range is None:
-        tau_range = [0.1, 0.5, 1.0, 2.0, 5.0]
+        tau_range = [0.0, 0.25, 0.5, 0.75, 1.0]
 
     if not any(len(r) > 0 for r in ground_truth):
         raise ValueError("No non-empty ground truth entries provided")
@@ -68,7 +73,8 @@ def search_with_recall(
     aspace : ArrowSpace instance
     gl : graph laplacian
     query : np.ndarray, shape (D,)
-    tau : float, spectral gate
+    tau : float, alpha-beta blend weight (1.0 = pure cosine; lower adds
+        spectral lambda-tau weighting)
     max_results : int, maximum number of results to return
         The actual count is bounded by the index's build-time ``topk``;
         this helper only truncates the returned hits.

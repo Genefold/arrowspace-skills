@@ -5,6 +5,7 @@ This repository contains portable skill definitions for the ArrowSpace spectral 
 ## Key facts
 
 - **ArrowSpace** is a vector database with spectral (graph Laplacian) awareness
+- **Target version**: arrowspace-rs 0.28.x / pyarrowspace 0.28.x (tau is an alpha-beta blend weight; builder defaults eps=0.5, k=12, topk=6)
 - **Rust core**: `arrowspace-rs` at github.com/Mec-iS/arrowspace-rs
 - **Python bindings**: `pyarrowspace` at github.com/tuned-org-uk/pyarrowspace, pip-installable as `arrowspace`
 - **JOSS paper**: doi:10.21105/joss.09002
@@ -24,10 +25,11 @@ pyproject.toml              # pip installable as arrowspace-skills
 
 ## Common operations
 
-1. `pip install arrowspace` to install the core library
+1. `pip install "arrowspace>=0.28"` to install the core library
 2. `ArrowSpaceBuilder().build(params, items)` to create an index
 3. `aspace.search(query, gl, tau)` to query
 4. Use `arrowspace_skills` utilities for parameter suggestion and tau tuning
+5. For corpus-fitted hyperparameters, use `arrowspace_tuner` (`pip install arrowspace-tuner`, then `arrowspace_tuner.tune(items)`)
 
 ## Links
 

@@ -49,7 +49,7 @@ Ratio of largest to smallest eigenvalue. A high condition number (> 1000) sugges
 | Fiedler value < 0.1 | Increase `k` or `eps` |
 | High condition number | Increase `eps` or `sigma` |
 | All tau values give same results | Graph too dense, reduce `k` |
-| Search returns very few hits | Reduce `tau` or increase `topk` |
+| Search returns very few hits | Increase `topk`, or pass a larger `k` at query time |
 | λτ scores all near 1.0 | Graph too dense — reduce `k` or `eps` |
 | λτ scores all near 0.0 | Graph too sparse — increase `k` or `eps` |
 

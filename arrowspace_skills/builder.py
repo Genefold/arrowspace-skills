@@ -8,11 +8,13 @@ def suggest_params(n_items: int, dim: int) -> dict:
     """
     Heuristic defaults for ArrowSpace graph parameters.
 
-    Follows the recommendations from pyarrowspace GRAPH_VARIABLES.md:
-    - eps starts at 0.1 for general use, adjusted by dimensionality
-    - k scales with dataset size, clamped to [3, 25]
+    Aligned with the arrowspace 0.28 builder defaults and the documented
+    0.5-4.0 eps regime:
+    - eps starts at 0.5 for general use, raised with dimensionality
+    - k scales with dataset size, clamped to [12, 25]
+    - topk = 6 (0.28 default retrieval count)
     - p = 2.0 (quadratic decay, default)
-    - sigma = None (aligns knee to eps)
+    - sigma = None (defaults to eps)
 
     Parameters
     ----------
@@ -25,14 +27,13 @@ def suggest_params(n_items: int, dim: int) -> dict:
     -------
     dict with keys eps, k, topk, p, sigma.
     """
-    k = min(max(3, int(n_items / 50)), 25)
-    topk = 3 if k <= 5 else 4
-    # Higher dims may need larger eps to maintain connectivity
-    eps = 0.1 if dim <= 128 else 0.2 if dim <= 768 else 0.5
+    k = min(max(12, int(n_items / 50)), 25)
+    # Higher dims spread cosine distances; raise eps to maintain connectivity
+    eps = 0.5 if dim <= 128 else 1.0 if dim <= 768 else 2.0
     return {
         "eps": eps,
         "k": k,
-        "topk": topk,
+        "topk": 6,
         "p": 2.0,
         "sigma": None,
     }

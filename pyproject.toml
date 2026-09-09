@@ -1,6 +1,6 @@
 [project]
 name = "arrowspace-skills"
-version = "0.4.0"
+version = "0.28.1"
 description = "Portable skill definitions and utilities for ArrowSpace spectral vector search"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -9,12 +9,12 @@ authors = [
     { name = "Lorenzo Moriondo", email = "tunedconsulting@gmail.com" },
 ]
 dependencies = [
-    "arrowspace>=0.24",
+    "arrowspace>=0.28",
     "numpy",
 ]
 
 [project.optional-dependencies]
-tuner = ["arrowspace-tuner>=0.3"]
+tuner = ["arrowspace-tuner>=0.4.1"]
 
 [build-system]
 requires = ["setuptools"]

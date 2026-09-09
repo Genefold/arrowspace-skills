@@ -8,20 +8,21 @@ You have a built ArrowSpace index and need to retrieve items similar to a query 
 
 ## How it works
 
-Each item is scored by a combination of its distance to the query and its spectral role in the graph (expressed by that item's $$λτ$$ score). The `tau` parameter controls the spectral gate: higher tau values include more items; lower tau values restrict to spectrally coherent candidates.
+Each item is scored by a blend of its cosine distance to the query and its spectral role in the graph (expressed by that item's $$λτ$$ score). The `tau` parameter is the alpha-beta blend weight: `tau` weights the cosine term and `1 - tau` the spectral term. `tau=1.0` is pure cosine ranking; lower tau values blend in spectral coherence.
 
 ## Steps
 
 1. Build an index (see `arrowspace-core.md`).
 2. For a query vector `q`, call `aspace.search(q, gl, tau=tau)`.
-3. The result is a list of `(index, score)` tuples sorted descending by score.
+3. The result is a list of `(index, score)` tuples sorted descending by score. Pass `k=...` to override the build-time `topk` per query.
 
 ## Tuning tau
 
-- Start at `tau = 1.0`.
-- Lower tau (~0.1–0.5) for precision (fewer, more relevant results).
-- Higher tau (~2.0–5.0) for recall (more results, lower precision).
+- `tau` lives in $$[0, 1]$$: `tau = 1.0` pure cosine, `tau = 0.0` pure spectral.
+- Start at `tau = 1.0` and lower it (0.5–0.75) when retrieval should respect structural role.
 - Use `tune_tau()` from `arrowspace_skills` for grid search if you have labelled queries.
+- Alternatively, `arrowspace_tuner` discovers `tau` (and `eps`/`k`) automatically with a label-free spectral objective.
+- Values outside $$[0, 1]$$ extrapolate the blend and are not recommended.
 
 ## Interpreting scores
 

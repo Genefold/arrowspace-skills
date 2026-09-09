@@ -6,14 +6,16 @@ Reference for the `graph_params` dictionary passed to `ArrowSpaceBuilder.build()
 from arrowspace import ArrowSpaceBuilder
 
 params = {
-    "eps": 0.05,        # distance cutoff
-    "k": 6,             # max neighbours
-    "topk": 4,          # results to retain
+    "eps": 0.5,         # distance cutoff
+    "k": 12,            # max neighbours
+    "topk": 6,          # results to retain
     "p": 2.0,           # kernel sharpness
     "sigma": None,      # scale (None → defaults to eps)
 }
 aspace, gl = ArrowSpaceBuilder().build(params, items)
 ```
+
+These are the arrowspace 0.28 builder defaults; a partial dict is accepted. Defaults are a starting point — for parameters fitted to your dataset, see [Automated tuning with `arrowspace_tuner`](#automated-tuning-with-arrowspace_tuner) below.
 
 ## Parameter reference
 
@@ -35,9 +37,9 @@ Edges with $$d > \text{eps}$$ are discarded before the k-NN cap. This is the pri
 
 | Setting | Graph | When to use |
 |---|---|---|
-| Very small ($$< 0.01$$) | Very sparse; risk of disconnected components | High-precision embeddings, tight clusters expected |
-| Moderate ($$0.05$$–$$0.15$$) | Sparse but connected | General-purpose start point |
-| Large ($$> 1.0$$) | Dense; many candidates pass threshold | Low-precision or scaled embeddings; see *Notes on scale* below |
+| Very small ($$< 0.1$$) | Very sparse; risk of disconnected components and zero $$λτ$$ scores | High-precision embeddings, tight clusters expected |
+| Moderate ($$0.5$$–$$1.0$$) | Sparse but connected | General-purpose start point (0.28 default: 0.5) |
+| Large ($$> 1.0$$) | Dense; many candidates pass threshold | High-dimensional or spread-out embeddings |
 
 **Notes on scale:** ArrowSpace internally normalises items to unit norm, then computes cosine distances. If your raw embedding values are very small (e.g. $$10^{-2}$$), the dot products may be unstable at low `eps`. A common fix is to scale normalised embeddings before building (e.g. multiply by 12.0) and raise `eps` correspondingly (e.g. 1.0–1.5).
 
@@ -58,7 +60,7 @@ Edges with $$d > \text{eps}$$ are discarded before the k-NN cap. This is the pri
 | Setting | Graph | When to use |
 |---|---|---|
 | Small (3–6) | Sparse, fast to build | Speed-critical, large N, or known clean manifold |
-| Moderate (10–25) | Well-connected, stable spectra | General use |
+| Moderate (12–25) | Well-connected, stable spectra | General use (0.28 default: 12) |
 | Large ($$> 25$$) | Dense, $$O(N \cdot k)$$ edges | Noisy embeddings, need robust connectivity |
 
 Larger `k` increases memory and compute cost for both the item graph and the subsequent feature Laplacian.
@@ -115,36 +117,36 @@ Controls how sharply weights decay with distance.
 |---|---|
 | **Type** | `int` |
 | **Range** | $$1 \dots N$$ |
-| **Default** | Heuristic: `3` if `k ≤ 5`, `4` if `k < 10`, else `k` itself |
+| **Default** | `6` (0.28 default) |
 
-**Description:** Number of closest results retained per node during neighbour selection. Not typically a tuning target — it follows `k` by heuristic.
+**Description:** Number of results returned by `search` when no `k` override is passed. Any `k` passed at query time takes precedence, so this is not typically a tuning target.
 
 ---
 
 ## Quick reference
 
 ```python
-# Conservative start (sparse graph, stable spectral)
+# 0.28 defaults (general-purpose start)
 {
-    "eps": 0.05,
-    "k": 6,
+    "eps": 0.5,
+    "k": 12,
     "p": 2.0,
     "sigma": None,
 }
 
-# Connected but sparse (good general default)
+# Better connectivity for larger corpora
 {
-    "eps": 0.1,
-    "k": 15,
-    "p": 2.0,
-    "sigma": None,
-}
-
-# Noisy or low-precision embeddings (scale up, raise eps)
-{
-    "eps": 1.2,
+    "eps": 0.5,
     "k": 25,
-    "p": 1.5,
+    "p": 2.0,
+    "sigma": None,
+}
+
+# High-dimensional or spread-out embeddings (raise eps, more neighbours)
+{
+    "eps": 2.0,
+    "k": 25,
+    "p": 2.0,
     "sigma": None,
 }
 ```
@@ -158,45 +160,55 @@ Controls how sharply weights decay with distance.
 | Search returns same results for all `tau` | Graph too dense | Reduce `k` |
 | High condition number in Laplacian | Graph too sparse or disconnected | Increase `eps` or `k` |
 | Poor recall on known neighbours | `eps` too restrictive | Increase `eps` or reduce `p` |
+| Defaults underperform on your corpus | Corpus-specific structure | Use `arrowspace_tuner` (below) |
 
 ## Reference
 
 - Authoritative source: [`GRAPH_VARIABLES.md`](https://github.com/tuned-org-uk/pyarrowspace/blob/main/GRAPH_VARIABLES.md) in pyarrowspace
+- Complex examples: [pyarrowspace test suite](https://github.com/tuned-org-uk/pyarrowspace/tree/main/tests)
 - Rust struct: [`GraphParams`](https://github.com/tuned-org-uk/arrowspace-rs/blob/main/src/graph.rs) in arrowspace-rs
 - JOSS paper: https://doi.org/10.21105/joss.09002
 
 ## Automated tuning with `arrowspace_tuner`
 
-Manual parameter search is tedious and corpus-dependent. The companion package [`arrowspace_tuner`](https://github.com/Genefold/arrowspace_tuner) uses Optuna to discover optimal `eps`, `k`, and `tau` automatically using a label-free spectral MRR proxy.
+Manual parameter search is tedious and corpus-dependent. The companion package [`arrowspace_tuner`](https://github.com/Genefold/arrowspace_tuner) uses Optuna to discover `eps`, `k`, `topk`, and `tau` automatically using a label-free spectral MRR proxy — a good alternative whenever defaults or heuristics are mentioned above.
 
 ```bash
 pip install arrowspace-tuner
 ```
 
 ```python
-import arrowspace_tuner
 import numpy as np
+import arrowspace_tuner
+from arrowspace import ArrowSpaceBuilder
 
 embeddings = np.load("corpus.npy")  # shape (N, D) float64
 
-# One-liner: discovers eps, k, tau in ~15 min on 50k corpus
-aspace, gl = arrowspace_tuner.optuna(embeddings)
-
-# Inspect the best params found
-print(aspace, gl)
-
-# Or use the power-user API with full control
-from arrowspace_tuner import EpsTuner
-
-tuner = EpsTuner(
-    n_trials=15,
-    eps_low=0.8,
-    eps_high=10,
-    k_low=15,
-    k_high=40,
-)
-aspace, gl = tuner.fit(embeddings)
-print(tuner.best_params)  # {"eps": 1.615, "k": 38, "tau": 0.114}
+# One-liner: discovers eps, k, topk (and tau for query time) — ~15 min on 50k corpus
+graph_params = arrowspace_tuner.tune(embeddings)
+aspace, gl = ArrowSpaceBuilder().build(graph_params, embeddings)
 ```
 
-The objective blends retrieval coherence (spectral MRR proxy), graph connectivity (Fiedler value), and spectral richness — no ground-truth labels required.
+Or the power-user API with full control (returns the graph-params dict; the final build always uses the full corpus):
+
+```python
+from arrowspace_tuner import EpsTuner, ArrowSpaceBuilder
+
+tuner = EpsTuner(
+    n_trials=15,          # >= 10 recommended (pruning needs completed trials)
+    sample_n=50_000,      # subsample for the study; final build uses all items
+    eps_low=0.3,
+    eps_high=4.0,
+    k_low=3,
+    k_high=40,
+    n_probe=50,
+    storage="sqlite:///tune.db",   # optional: resume interrupted runs
+)
+graph_params = tuner.fit(embeddings)
+aspace, gl = ArrowSpaceBuilder().build(graph_params, embeddings)
+
+print(graph_params)   # {"eps": ..., "k": ..., "topk": ..., "p": ..., "sigma": ...}
+print(tuner.best_tau) # query-time blend weight, not part of graph_params
+```
+
+The objective blends retrieval coherence (spectral MRR proxy), graph connectivity (Fiedler value), and spectral richness — no ground-truth labels required. Install `arrowspace-tuner[report]` for CSV/HTML reporting (`tuner.save_report()`), and use multiple workers against the same SQLite storage for parallel runs.

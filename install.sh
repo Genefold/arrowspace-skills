@@ -9,7 +9,7 @@ echo "=== ArrowSpace Skills Setup ==="
 # 1. Ensure the core library is installed
 if ! python -c "import arrowspace" 2>/dev/null; then
     echo "Installing arrowspace..."
-    python -m pip install arrowspace
+    python -m pip install "arrowspace>=0.28"
 fi
 
 # 2. Install this package
