@@ -12,10 +12,7 @@ if ! python -c "import arrowspace" 2>/dev/null; then
     python -m pip install "arrowspace>=0.28"
 fi
 
-# 2. Install this package
-python -m pip install -e .
-
-# 3. Register as opencode skill if requested
+# 2. Register as opencode skill if requested
 if [ "${1:-}" = "--opencode" ]; then
     OPENCODE_SKILLS="${HOME}/.config/opencode/skills"
     mkdir -p "${OPENCODE_SKILLS}/arrowspace"
@@ -23,4 +20,4 @@ if [ "${1:-}" = "--opencode" ]; then
     echo "ArrowSpace skill registered in opencode."
 fi
 
-echo "Done. Try: python -c \"from arrowspace_skills import suggest_params; print(suggest_params(1000, 768))\""
+echo "Done. Try: python -c \"import sys; sys.path.insert(0, 'skills/scripts'); from builder import suggest_params; print(suggest_params(1000, 768))\""

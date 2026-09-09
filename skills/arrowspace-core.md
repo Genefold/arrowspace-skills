@@ -70,7 +70,7 @@ eps = 0.5 if D <= 128 else 1.0 if D <= 768 else 2.0
 topk = 6
 ```
 
-Matches `suggest_params()` from `arrowspace_skills` and the arrowspace 0.28 defaults. Note: this is a coarse heuristic — for corpus-fitted parameters use `arrowspace_tuner` (`arrowspace_tuner.tune(items)`), which discovers `eps`, `k`, `topk`, and `tau` automatically.
+Matches `suggest_params()` in `skills/scripts/builder.py` and the arrowspace 0.28 defaults. Note: this is a coarse heuristic — for corpus-fitted parameters use `arrowspace_tuner` (`arrowspace_tuner.tune(items)`), which discovers `eps`, `k`, `topk`, and `tau` automatically.
 
 ## References
 

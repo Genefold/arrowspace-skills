@@ -73,20 +73,27 @@ cp SKILL.md .opencode/skills/arrowspace/SKILL.md
 
 **Any agent** — point it at this repo: "You have access to the ArrowSpace skills at `skills/`."
 
-## Python Package
+## Helper Scripts
 
-Install the skill utilities directly:
+Supporting Python scripts live in `skills/scripts/` — no install needed. Ensure the core library is available, then import them directly:
 
 ```bash
-pip install arrowspace-skills
+pip install "arrowspace>=0.28"
 ```
 
 ```python
-from arrowspace_skills import (
+import sys
+sys.path.insert(0, "skills/scripts")
+
+from builder import (
     suggest_params,              # heuristic graph parameters
     build_index,                 # one-shot index builder
+)
+from search import (
     tune_tau,                    # grid search over alpha-blend weight
     search_with_recall,          # query with result cap
+)
+from spectral import (
     item_lambdas,                # per-item lambda-tau scores
     sorted_lambdas,              # lambda-tau-ranked item list
     explain_spectral_properties, # eigendecomposition diagnostics
@@ -94,7 +101,7 @@ from arrowspace_skills import (
 )
 ```
 
-See `arrowspace_skills/` for reusable helper functions.
+See `skills/scripts/` for the helper functions.
 
 ## License
 

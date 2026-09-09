@@ -15,12 +15,11 @@ This repository contains portable skill definitions for the ArrowSpace spectral 
 
 ```
 SKILL.md                    # opencode skill registration
-arrowspace_skills/          # Python package with helper utilities
 skills/                     # Portable skill definitions (any agent)
   arrowspace-core.md        # Building an ArrowSpace index
   arrowspace-search.md      # Querying with λτ scoring
   arrowspace-spectral.md    # Spectral analysis and diagnostics
-pyproject.toml              # pip installable as arrowspace-skills
+  scripts/                  # Supporting Python scripts (builder, search, spectral helpers)
 ```
 
 ## Common operations
@@ -28,7 +27,7 @@ pyproject.toml              # pip installable as arrowspace-skills
 1. `pip install "arrowspace>=0.28"` to install the core library
 2. `ArrowSpaceBuilder().build(params, items)` to create an index
 3. `aspace.search(query, gl, tau)` to query
-4. Use `arrowspace_skills` utilities for parameter suggestion and tau tuning
+4. Use the helpers in `skills/scripts/` for parameter suggestion and tau tuning
 5. For corpus-fitted hyperparameters, use `arrowspace_tuner` (`pip install arrowspace-tuner`, then `arrowspace_tuner.tune(items)`)
 
 ## Links
