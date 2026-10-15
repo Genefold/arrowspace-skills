@@ -21,7 +21,7 @@ Each item is scored by a blend of its cosine distance to the query and its spect
 - `tau` lives in $$[0, 1]$$: `tau = 1.0` pure cosine, `tau = 0.0` pure spectral.
 - Start at `tau = 1.0` and lower it (0.5–0.75) when retrieval should respect structural role.
 - Use `tune_tau()` in `skills/scripts/search.py` for grid search if you have labelled queries.
-- Alternatively, `arrowspace_tuner` discovers `tau` (and `eps`/`k`) automatically with a label-free spectral objective.
+- Use `arrowspace_tuner` to optimize base graph parameters from up to 10,000 representative items; retain `tuner.best_tau` separately as the query-time blend weight, and build the final index with the full corpus.
 - Values outside $$[0, 1]$$ extrapolate the blend and are not recommended.
 
 ## Interpreting scores

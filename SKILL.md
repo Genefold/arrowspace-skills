@@ -3,7 +3,7 @@ name: arrowspace
 description: Spectral vector search using graph Laplacian eigenstructure. Build signal graphs, run λτ-indexed queries, and analyse spectral properties of vector datasets.
 metadata:
   origin: Genefold AI
-  version: 0.28.1
+  version: 0.30.0
   package: arrowspace
 ---
 
@@ -21,10 +21,10 @@ ArrowSpace is a vector database and search library that augments nearest-neighbo
 ## Installation
 
 ```bash
-pip install "arrowspace>=0.28"
+uv pip install "arrowspace>=0.30.0"
 ```
 
-Or from source: see [pyarrowspace](https://github.com/tuned-org-uk/pyarrowspace).
+ArrowSpace v0.30.0 is available for both the [Python bindings](https://github.com/tuned-org-uk/pyarrowspace/releases/tag/v0.30.0) and the [Rust core](https://crates.io/crates/arrowspace/0.30.0).
 
 ## Core API
 
@@ -39,13 +39,14 @@ params = {"eps": 0.5, "k": 12, "topk": 6, "p": 2.0, "sigma": None}
 aspace, gl = ArrowSpaceBuilder().build(params, items)
 ```
 
-Since 0.28 every key has a default (`eps=0.5`, `k=12`, `topk=6`, `p=2.0`, `sigma=eps`); a partial dict is accepted. Defaults are a starting point — to compute parameters fitted to your dataset, use [`arrowspace_tuner`](https://pypi.org/project/arrowspace-tuner/):
+In the 0.30 core, every key has a default (`eps=0.5`, `k=12`, `topk=6`, `p=2.0`, `sigma=eps`) and a partial dict is accepted. Defaults are fallback values: use [`arrowspace_tuner`](https://pypi.org/project/arrowspace-tuner/) to optimize base graph parameters from a representative sample of up to 10,000 items, then build with the full corpus:
 
 ```python
-import arrowspace_tuner
+from arrowspace_tuner import EpsTuner
 from arrowspace import ArrowSpaceBuilder
 
-graph_params = arrowspace_tuner.tune(items)   # discovers eps, k, topk, p, sigma
+tuner = EpsTuner(n_trials=15, seed=3407, sample_n=min(10_000, len(items)))
+graph_params = tuner.fit(items)  # discovers eps, k, topk, p, sigma
 aspace, gl = ArrowSpaceBuilder().build(graph_params, items)
 ```
 
@@ -120,7 +121,7 @@ Contract: `search`, `search_hybrid`, and the batch path raise `ValueError` (not 
 
 ### Parameters
 
-| Param | Default (0.28) | Description |
+| Param | Default (0.30) | Description |
 |---|---|---|
 | `eps` | 0.5 | Neighbourhood radius for graph construction; raise for high-dimensional embeddings |
 | `k` | 12 | Number of nearest neighbours |
@@ -128,7 +129,7 @@ Contract: `search`, `search_hybrid`, and the batch path raise `ValueError` (not 
 | `p` | 2.0 | Distance norm (2 = Euclidean) |
 | `sigma` | = eps | RBF kernel width (`None` → eps) |
 
-Note: instead of hand-picking `eps`/`k`/`tau`, `arrowspace_tuner` can discover them from your corpus (label-free, Optuna-based) — `pip install arrowspace-tuner`, then `arrowspace_tuner.tune(items)`.
+Note: instead of hand-picking base parameters, run `uv pip install arrowspace-tuner`, then tune a representative sample of up to 10,000 items with `EpsTuner(seed=3407, sample_n=...)`. Use the returned `graph_params` for the full-corpus build; `tuner.best_tau` is a separate query-time setting.
 
 ### Tau ($$λτ$$ blend)
 
@@ -180,11 +181,14 @@ Mode requirements: `spot_motives_eigen` / `spot_motives_eigen_items` need an Eig
 
 Config keys (defaults): motif cfg `top_l=16` (prune to top-L strongest neighbours), `min_triangles=2`, `min_clust=0.4`, `max_motif_size=32`, `max_sets=256`, `jaccard_dedup=0.8`; subgraph cfg `min_size=3`, `rayleigh_max=None`; centroid-hierarchy cfg additionally accepts `min_centroids=8`, `max_depth=2`, and the graph-param keys — unknown keys are rejected.
 
-## Rust API surface (arrowspace-rs 0.28)
+## Rust API surface (arrowspace-rs 0.30.0)
 
 For Rust users ([docs.rs/arrowspace](https://docs.rs/arrowspace)); the Python bindings wrap the same core:
 
-- Builder defaults match the 0.28 defaults above (`eps=0.5`, `k=12`, `topk=6`, `p=2.0`, `sigma=None` meaning σ := eps); override via `with_lambda_graph(eps, k, topk, p, sigma_override)`.
+- Builder defaults match the 0.30 defaults above (`eps=0.5`, `k=12`, `topk=6`, `p=2.0`, `sigma=None` meaning σ := eps); override via `with_lambda_graph(eps, k, topk, p, sigma_override)`.
+- `with_seed(3407)` makes clustering, sampling, and λ read-out reproducible: identical input and configuration yield bit-identical λ vectors.
+- The λτ read-out is bounded to $$[0, 1]$$ even when the selected synthesis τ lies outside that interval; behavior within $$[0, 1]$$ is unchanged.
+- v0.30 improves clustering, dispersion, and Two-NN calculations while preserving exact floating-point results relative to the prior implementations.
 - `TauMode` synthesis policies for the per-item lambda-tau score (distinct from the query-time alpha-beta blend `tau`): `Median` (default), `Mean`, `Percentile(f64)`, `Fixed(f64)`.
 - Fallible variants `try_prepare_query_item` / `try_search_lambda_aware` return `ArrowSpaceError::DegenerateLambda` instead of panicking; the panicking twins `prepare_query_item` / `search_lambda_aware` are deprecated since 0.27.
 - `range_search` for radius queries.
@@ -202,7 +206,7 @@ For Rust users ([docs.rs/arrowspace](https://docs.rs/arrowspace)); the Python bi
 - [Presentation: Deep-dive](https://docs.google.com/presentation/d/1Mtz-_85qpVROnp4U2VrnlSHn0266Z1yc_HfjUtfxYLs)
 - [Complex examples: pyarrowspace test suite](https://github.com/tuned-org-uk/pyarrowspace/tree/main/tests)
 - [Hyperparameter tuning: arrowspace_tuner](https://pypi.org/project/arrowspace-tuner/)
-- [Rust source](https://github.com/Mec-iS/arrowspace-rs)
+- [Rust source](https://github.com/tuned-org-uk/arrowspace-rs)
 - [Rust API docs](https://docs.rs/arrowspace)
 - [Python source](https://github.com/tuned-org-uk/pyarrowspace)
 

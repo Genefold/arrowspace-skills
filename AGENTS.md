@@ -5,8 +5,8 @@ This repository contains portable skill definitions for the ArrowSpace spectral 
 ## Key facts
 
 - **ArrowSpace** is a vector database with spectral (graph Laplacian) awareness
-- **Target version**: arrowspace-rs 0.28.x / pyarrowspace 0.28.x (tau is an alpha-beta blend weight; builder defaults eps=0.5, k=12, topk=6)
-- **Rust core**: `arrowspace-rs` at github.com/Mec-iS/arrowspace-rs
+- **Target version**: arrowspace-rs 0.30.0 / pyarrowspace 0.30.0 (tau is an alpha-beta blend weight; builder defaults eps=0.5, k=12, topk=6)
+- **Rust core**: `arrowspace-rs` at github.com/tuned-org-uk/arrowspace-rs
 - **Python bindings**: `pyarrowspace` at github.com/tuned-org-uk/pyarrowspace, pip-installable as `arrowspace`
 - **JOSS paper**: doi:10.21105/joss.09002
 - **Author**: Lorenzo Moriondo (Mec-iS) — ArrowSpace creator, Genefold AI founder
@@ -24,11 +24,11 @@ skills/                     # Portable skill definitions (any agent)
 
 ## Common operations
 
-1. `pip install "arrowspace>=0.28"` to install the core library
+1. `uv pip install "arrowspace>=0.30.0"` to install the Python bindings
 2. `ArrowSpaceBuilder().build(params, items)` to create an index
 3. `aspace.search(query, gl, tau)` to query
 4. Use the helpers in `skills/scripts/` for parameter suggestion and tau tuning
-5. For corpus-fitted hyperparameters, use `arrowspace_tuner` (`pip install arrowspace-tuner`, then `arrowspace_tuner.tune(items)`)
+5. Use `arrowspace_tuner` for base graph parameters: tune a representative sample of up to 10,000 items with seed 3407, then build the final index with the returned parameters and the full corpus.
 
 ## Links
 

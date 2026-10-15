@@ -7,7 +7,7 @@ Portable skill definitions for working with **ArrowSpace** — a spectral vector
 ## Quick Start
 
 ```bash
-pip install "arrowspace>=0.28"
+uv pip install "arrowspace>=0.30.0"
 ```
 
 Then:
@@ -25,12 +25,15 @@ hits = aspace.search(query, gl, tau=1.0)
 print(hits)  # [(0, 0.99), (1, 0.76), (2, 0.22)]
 ```
 
-The `graph_params` above are the 0.28 defaults. To compute parameters fitted to your dataset, use [`arrowspace_tuner`](https://pypi.org/project/arrowspace-tuner/):
+The `graph_params` above are fallback defaults. Use [`arrowspace_tuner`](https://pypi.org/project/arrowspace-tuner/) to derive the base graph parameters from a representative sample of up to 10,000 items, then build the index over the full corpus:
 
 ```python
-import arrowspace_tuner
+from arrowspace_tuner import EpsTuner
 
-graph_params = arrowspace_tuner.tune(items)   # discovers eps, k, topk, p, sigma
+# The tuner samples internally; fitting always returns graph parameters for
+# the final full-corpus build. `best_tau` remains a query-time setting.
+tuner = EpsTuner(n_trials=15, seed=3407, sample_n=min(10_000, len(items)))
+graph_params = tuner.fit(items)  # eps, k, topk, p, sigma
 aspace, gl = ArrowSpaceBuilder().build(graph_params, items)
 ```
 
@@ -39,9 +42,9 @@ aspace, gl = ArrowSpaceBuilder().build(graph_params, items)
 | Resource | Link |
 |---|---|
 | **JOSS paper** | [doi:10.21105/joss.09002](https://doi.org/10.21105/joss.09002) |
-| **Rust library** | [github.com/Mec-iS/arrowspace-rs](https://github.com/Mec-iS/arrowspace-rs) |
+| **Rust library** | [arrowspace-rs v0.30.0](https://github.com/tuned-org-uk/arrowspace-rs/releases/tag/v0.30.0) |
 | **Python bindings** | [github.com/tuned-org-uk/pyarrowspace](https://github.com/tuned-org-uk/pyarrowspace) |
-| **PyPI package** | `pip install "arrowspace>=0.28"` |
+| **Python bindings** | [pyarrowspace v0.30.0](https://github.com/tuned-org-uk/pyarrowspace/releases/tag/v0.30.0); `uv pip install "arrowspace>=0.30.0"` |
 | **crates.io** | `cargo add arrowspace` |
 | **Presentation 1** | [Spectral Indexing overview](https://docs.google.com/presentation/d/1f1Zu3FTXltbsXLonflG-7yra4l383B6sbhIgnbx226g/) |
 | **Presentation 2** | [ArrowSpace deep-dive](https://docs.google.com/presentation/d/1Mtz-_85qpVROnp4U2VrnlSHn0266Z1yc_HfjUtfxYLs) |
@@ -78,7 +81,7 @@ cp SKILL.md .opencode/skills/arrowspace/SKILL.md
 Supporting Python scripts live in `skills/scripts/` — no install needed. Ensure the core library is available, then import them directly:
 
 ```bash
-pip install "arrowspace>=0.28"
+uv pip install "arrowspace>=0.30.0"
 ```
 
 ```python
@@ -86,7 +89,7 @@ import sys
 sys.path.insert(0, "skills/scripts")
 
 from builder import (
-    suggest_params,              # heuristic graph parameters
+    suggest_params,              # fallback heuristic; prefer arrowspace_tuner
     build_index,                 # one-shot index builder
 )
 from search import (
@@ -105,4 +108,4 @@ See `skills/scripts/` for the helper functions.
 
 ## License
 
-Apache 2.0 — same as `arrowspace-rs`.
+MIT OR Apache-2.0 — same as `arrowspace-rs`.

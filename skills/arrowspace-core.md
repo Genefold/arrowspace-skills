@@ -17,13 +17,14 @@ ArrowSpace constructs a k-NN graph from the item vectors, computes the graph Lap
 3. Call `ArrowSpaceBuilder().build(params, items)`.
 4. Store the returned `(aspace, gl)` pair.
 
-Since 0.28 every parameter has a default (`eps=0.5`, `k=12`, `topk=6`, `p=2.0`, `sigma=eps`) and a partial dict is accepted. Defaults are a starting point — use `arrowspace_tuner` to compute parameters fitted to your dataset (label-free, Optuna-based):
+In the 0.30 core, every parameter has a default (`eps=0.5`, `k=12`, `topk=6`, `p=2.0`, `sigma=eps`) and a partial dict is accepted. Treat these as fallback values: use `arrowspace_tuner` to optimize base graph parameters from a representative sample of up to 10,000 items (label-free, Optuna-based), then build the full corpus:
 
 ```python
-import arrowspace_tuner
+from arrowspace_tuner import EpsTuner
 from arrowspace import ArrowSpaceBuilder
 
-graph_params = arrowspace_tuner.tune(items)   # discovers eps, k, topk, p, sigma
+tuner = EpsTuner(n_trials=15, seed=3407, sample_n=min(10_000, len(items)))
+graph_params = tuner.fit(items)   # discovers eps, k, topk, p, sigma
 aspace, gl = ArrowSpaceBuilder().build(graph_params, items)
 ```
 
@@ -70,7 +71,7 @@ eps = 0.5 if D <= 128 else 1.0 if D <= 768 else 2.0
 topk = 6
 ```
 
-Matches `suggest_params()` in `skills/scripts/builder.py` and the arrowspace 0.28 defaults. Note: this is a coarse heuristic — for corpus-fitted parameters use `arrowspace_tuner` (`arrowspace_tuner.tune(items)`), which discovers `eps`, `k`, `topk`, and `tau` automatically.
+Matches `suggest_params()` in `skills/scripts/builder.py` and the arrowspace 0.30 defaults. It is a coarse fallback only: use `arrowspace_tuner` with `sample_n=min(10_000, len(items))` and `seed=3407` for the base graph parameters. The final build must still use every item.
 
 ## References
 
